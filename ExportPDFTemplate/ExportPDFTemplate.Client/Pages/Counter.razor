@@ -1,0 +1,235 @@
+﻿@page "/counter"
+
+@* Detailed Template *@
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor
+
+<SfGrid @ref="DefaultGrid" ID="Grid" DataSource="@Employees" Toolbar="@(new List<string>() { "PdfExport" })" AllowPdfExport="true" Height="450px">
+    <GridTemplates>
+        <DetailTemplate>
+            @{
+                var employee = (context as Product);
+                <table class="detailtable" width="100%">
+                    <colgroup>
+                        <col width="40%" />
+                        <col width="60%" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th colspan="2" style="font-weight: 500;text-align: center;background-color: #ADD8E6;">
+                                Product Details
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span>@employee?.ProductDesc</span>
+                            </td>
+                            <td>
+                                <span class="link">
+                                    Contact: <a href="mailto:${@employee?.Contact}">@employee?.Contact</a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 500;"> @employee?.Cost</span>
+                            </td>
+                            <td>
+                                <span>Available: @employee?.Available </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span class="${Status}" style="font-weight: 500;"> @employee?.Status</span>
+                            </td>
+                            <td>
+                                <span>@employee?.ReturnPolicy</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 500;color: #0a76ff;">Offers: @employee?.Offers </span>
+                            </td>
+
+                            <td>
+                                <span>@employee?.Cancellation</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 500;color: #0a76ff;"> Ratings: @employee?.Ratings</span>
+                            </td>
+                            <td>
+                                <span style="font-weight: 500;color: #0a76ff;">@employee?.Delivery</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            }
+        </DetailTemplate>
+    </GridTemplates>
+    <GridEvents PdfDetailTemplateExporting="PdfDetailTemplateHandler" OnToolbarClick="ToolbarClickHandler" TValue="Product"></GridEvents>
+    <GridColumns>
+        <GridColumn Field=@nameof(Product.Category) HeaderText="Category" Width="110"> </GridColumn>
+        <GridColumn Field=@nameof(Product.ProductID) HeaderText="Product ID" Width="160"> </GridColumn>
+        <GridColumn Field=@nameof(Product.Status) HeaderText="Status" Width="180"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+<style type="text/css" class="cssStyles">
+    .detailtable td {
+        font-size: 13px;
+        padding: 4px;
+        max-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: normal;
+    }
+</style>
+
+@code {
+
+    SfGrid<Product>? DefaultGrid;
+    public List<Product>? Employees { get; set; }
+    public async Task ToolbarClickHandler(ClickEventArgs args)
+    {
+        if (args.Item.Id == "Grid_pdfexport" && DefaultGrid != null)  // Id is the combination of Grid's ID and item name.
+        {
+            PdfExportProperties PdfExportProperties = new PdfExportProperties();
+            PdfExportProperties.PdfDetailRowMode = PdfDetailRowMode.Expand;
+            await this.DefaultGrid.ExportToPdfAsync(PdfExportProperties);
+        }
+    }
+
+    public void PdfDetailTemplateHandler(PdfDetailTemplateEventArgs<Product> args)
+    {
+        var pdfRows = new List<PdfDetailTemplateRow>();
+        var data = args.ParentRow.Data;
+        args.RowInfo.ColumnCount = 2;
+        args.RowInfo.Headers = new List<PdfDetailTemplateRow>() { new PdfDetailTemplateRow() { Cells = new List<PdfDetailTemplateCell>() { new PdfDetailTemplateCell() { Index = 0, CellValue = "Product Details", ColumnSpan = 2, Style = new PdfThemeStyle() { Bold = true, FontColor = "#0A76FF", FontSize = 13 } } } } };
+        pdfRows.Add(new PdfDetailTemplateRow()
+        {
+            Cells = new List<PdfDetailTemplateCell>()
+            {
+                new PdfDetailTemplateCell()
+                {
+                    CellValue = data.ProductDesc, Index = 0
+                },
+                new PdfDetailTemplateCell()
+                {
+                    Index = 1, Hyperlink = new Hyperlink() { DisplayText = data.Contact, Target = data.Contact }
+                }
+            }
+        });
+
+        pdfRows.Add(new PdfDetailTemplateRow()
+        {
+            Cells = new List<PdfDetailTemplateCell>()
+            {
+                new PdfDetailTemplateCell()
+                {
+                    CellValue = data.Cost, Index = 0
+                },
+                new PdfDetailTemplateCell()
+                {
+                    Index = 1, CellValue = "Available :" + data.Available }
+            }
+        });
+
+        pdfRows.Add(new PdfDetailTemplateRow()
+        {
+            Cells = new List<PdfDetailTemplateCell>()
+            {
+                new PdfDetailTemplateCell()
+                {
+                    CellValue = data.Status, Index = 0
+                },
+                new PdfDetailTemplateCell()
+                {
+                    Index = 1, CellValue = data.ReturnPolicy 
+                }
+            }
+        });
+        
+        pdfRows.Add(new PdfDetailTemplateRow()
+        {
+            Cells = new List<PdfDetailTemplateCell>()
+            {
+                new PdfDetailTemplateCell()
+                {
+                    CellValue = "Offers :" + data.Offers, Index = 0, Style = new PdfThemeStyle()
+                    {
+                        FontColor = "#0A76FF", FontSize = 12
+                    }
+                },
+                new PdfDetailTemplateCell()
+                {
+                    Index = 1, CellValue = data.Cancellation 
+                }
+            }
+        });
+        
+        pdfRows.Add(new PdfDetailTemplateRow()
+        {
+            Cells = new List<PdfDetailTemplateCell>()
+            {
+                new PdfDetailTemplateCell()
+                {
+                    CellValue = "Ratings: " + data.Ratings, Index = 0, Style = new PdfThemeStyle()
+                    {
+                        FontColor = "#0A76FF", FontSize = 12
+                    }
+                },
+                new PdfDetailTemplateCell()
+                {
+                    Index = 1, CellValue = data.Delivery, Style = new PdfThemeStyle()
+                    {
+                        FontColor = "#0A76FF", FontSize = 12
+                    }
+                }
+            }
+        });
+        args.RowInfo.Rows = pdfRows;
+    }
+
+    protected override void OnInitialized()
+    {
+        Employees = new List<Product>
+        {
+            new Product() {Category = "Suits/Slim", Offers="5%", Cost ="199.99$", Available = "10", ItemID="Suit-001",ProductID="EJ-SU-01", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Slim Fit Suit", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "Cancellation upto 12 hrs", Ratings ="4.5" },
+            new Product() {Category = "Suits/Classic", Offers="12%", Cost ="249.99$", Available = "8", ItemID="Suit-002",ProductID="EJ-SU-02", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Classic Fit Suit", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "Cancellation upto 24 hrs", Ratings ="4.8" },
+            new Product() {Category = "Suits/Formal", Offers="5%", Cost ="149.99$", Available = "15", ItemID="Suit-003",ProductID="EJ-SU-03", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Formal Fit Suit", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "Cancellation upto 12 hrs", Ratings ="4.7" },
+            new Product() {Category = "Phants/Slim", Offers="10%", Cost ="19.99$", Available = "50", ItemID="Phant-001",ProductID="EJ-PH-01", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Slim Fit Phant", ReturnPolicy = "Returns Applicable upto 2 days", Delivery = "** FREE Delivery **", Cancellation = "No Cancellation", Ratings ="4.5" },
+            new Product() {Category = "Phants/Classic", Offers="10%", Cost ="24.99$", Available = "45", ItemID="Phant-002",ProductID="EJ-PH-02", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Classic Fit Phant", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "No Cancellation", Ratings ="4.6" },
+            new Product() {Category = "Shirts/Slim", Offers="8%", Cost ="19.99$", Available = "30", ItemID="Shirt-001",ProductID="EJ-SH-01", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Slim Fit Shirt", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "No Cancellation", Ratings ="4.5" },
+            new Product() {Category = "Shirts/Formal", Offers="10%", Cost ="14.99$", Available = "30", ItemID="Shirt-002",ProductID="EJ-SH-02", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Formal Shirt", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "No Cancellation", Ratings ="4.0" },
+            new Product() {Category = "Shirts/Classic", Offers="5%", Cost ="249.99$", Available = "25", ItemID="Shirt-003",ProductID="EJ-SH-03", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Slim Fit Classic", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "Cancellation upto 12 hrs", Ratings ="4.8" },
+            new Product() {Category = "Shirts/Slim", Offers="10%", Cost ="14.99$", Available = "30", ItemID="Shirt-001",ProductID="EJ-SH-01", Contact="nancy@domain.com", Status = "Available", ProductDesc = "Slim Fit Shirt", ReturnPolicy = "No Returns Applicable", Delivery = "** FREE Delivery **", Cancellation = "No Cancellation", Ratings ="4.5" },
+        };
+    }
+
+    public class Product
+    {
+        public string? Category { get; set; }
+        public string? Offers { get; set; }
+        public string? Cost { get; set; }
+        public string? Available { get; set; }
+        public string? ItemID { get; set; }
+        public string? ProductID { get; set; }
+        public string? Contact { get; set; }
+        public string? Status { get; set; }
+        public string? ProductImg { get; set; }
+        public string? ProductDesc { get; set; }
+        public string? ReturnPolicy { get; set; }
+        public string? Delivery { get; set; }
+        public string? Cancellation { get; set; }
+        public string? Ratings { get; set; }
+    }
+}
